@@ -5,23 +5,40 @@ A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that expor
 ## Features
 
 - Dark Catppuccin Mocha themed HTML output
-- Syntax highlighting via highlight.js
+- Syntax highlighting via highlight.js (loaded from CDN)
 - Collapsible large code blocks (12+ lines)
 - Expandable Write/Edit tool blocks with diff views
 - Tool results distinguished from user messages
 - Styled Q&A formatting for AskUserQuestion results
 - Word-wrapped content in collapsible sections
+- Zero dependencies — uses Python stdlib only (optional `markdown` for richer HTML)
 
 ## Installation
 
-Copy or symlink the `export-session` folder into your Claude Code skills directory:
+Clone or copy the repo into your Claude Code skills directory:
 
+```bash
+# Option 1: Clone directly into skills dir
+git clone https://github.com/SanderBuruma/claude-export-session.git ~/.claude/skills/export-session
+
+# Option 2: Copy manually
+cp -r claude-export-session ~/.claude/skills/export-session
+```
+
+The resulting structure should be:
 ```
 ~/.claude/skills/export-session/
 ├── SKILL.md
 ├── README.md
 └── scripts/
     └── export_session.py
+```
+
+No `pip install`, no venv, no dependencies required. Just Python 3.x.
+
+Optionally, for slightly better HTML rendering of markdown content:
+```bash
+pip install markdown
 ```
 
 ## Usage
@@ -33,7 +50,7 @@ Say `/export-session` or use natural language like "export this session" or "sav
 ### Standalone
 
 ```bash
-python scripts/export_session.py <path-to-session.jsonl>
+python ~/.claude/skills/export-session/scripts/export_session.py <path-to-session.jsonl>
 ```
 
 Session JSONL files are located at:
@@ -47,7 +64,6 @@ Reports are saved to `~/.claude/custom-reports/{date}-{slug}/`:
 - `session.md` — clean Markdown
 - `session.html` — styled HTML with syntax highlighting
 
-## Dependencies
+## Platform support
 
-- Python 3.x
-- Optional: `markdown` library for better HTML conversion (falls back to regex-based conversion)
+Works on Windows, macOS, and Linux. The output directory is auto-resolved from `$USERPROFILE` (Windows) or `$HOME` (macOS/Linux). Override with `CLAUDE_CONFIG_DIR` env var if your `.claude` directory is in a non-standard location.

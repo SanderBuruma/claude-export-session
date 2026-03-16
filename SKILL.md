@@ -5,7 +5,7 @@ description: Export a Claude Code conversation session to clean Markdown and sty
 
 # Export Session
 
-Converts Claude Code JSONL session logs into clean Markdown and a dark-themed HTML report. Both files are saved to `C:\Users\sander.buruma\.claude\custom-reports\{date}-{slug}/`.
+Converts Claude Code JSONL session logs into clean Markdown and a dark-themed HTML report. Both files are saved to `~/.claude/custom-reports/{date}-{slug}/`.
 
 ## How it works
 
@@ -30,7 +30,7 @@ python <skill-path>/scripts/export_session.py <path-to-session.jsonl>
 
 Session JSONL files live at:
 ```
-C:\Users\sander.buruma\.claude\projects\<project-dir>\<session-id>.jsonl
+~/.claude/projects/<project-dir>/<session-id>.jsonl
 ```
 
 To find the right file:
@@ -45,14 +45,14 @@ The current conversation's session ID can be found by listing the most recently 
 
 Reports are saved to:
 ```
-C:\Users\sander.buruma\.claude\custom-reports\{date}-{slugified-first-message}\
+~/.claude/custom-reports/{date}-{slugified-first-message}/
   session.md
   session.html
 ```
 
-After export, offer to open the HTML in the browser with `start "" "<path>\session.html"`.
+After export, offer to open the HTML in the browser (`start` on Windows, `open` on macOS, `xdg-open` on Linux).
 
 ## Dependencies
 
-- Python 3.x
-- `markdown` library (for proper HTML conversion; falls back to basic regex conversion if unavailable)
+- Python 3.x (stdlib only — no pip install required)
+- Optional: `markdown` library (`pip install markdown`) for better HTML conversion; falls back to built-in regex conversion if unavailable

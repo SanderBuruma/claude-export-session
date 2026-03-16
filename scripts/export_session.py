@@ -9,6 +9,7 @@ Session name is derived from the first user message or falls back to session ID.
 """
 
 import json
+import os
 import sys
 import re
 import html as html_mod
@@ -21,7 +22,18 @@ try:
 except ImportError:
     HAS_MARKDOWN = False
 
-REPORTS_DIR = Path(r"C:\Users\sander.buruma\.claude\custom-reports")
+def _get_reports_dir():
+    """Resolve reports directory, works on Windows, macOS, and Linux."""
+    claude_dir = os.environ.get("CLAUDE_CONFIG_DIR")
+    if claude_dir:
+        return Path(claude_dir) / "custom-reports"
+    if sys.platform == "win32":
+        home = os.environ.get("USERPROFILE", Path.home())
+    else:
+        home = Path.home()
+    return Path(home) / ".claude" / "custom-reports"
+
+REPORTS_DIR = _get_reports_dir()
 
 HTML_TEMPLATE = """\
 <!DOCTYPE html>
