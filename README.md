@@ -1,6 +1,8 @@
 # Claude Export Session
 
-A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that exports JSONL session logs to clean Markdown and styled HTML reports.
+Claude Code stores conversations as raw JSONL files — machine-readable but painful for humans. Messages, tool calls, tool results, and system noise are all flattened into one stream with no visual distinction. Trying to review a session means scrolling through walls of JSON where user prompts, assistant responses, file contents, and internal tool plumbing all look the same. Tool results show up labeled as "user" messages. Code blocks have no syntax highlighting. Large outputs aren't collapsible. It's hard to find what you're looking for, and impossible to share with anyone who wasn't in the conversation.
+
+This skill turns those raw JSONL logs into clean, readable HTML reports with a dark theme, color-coded roles, syntax-highlighted code, collapsible sections, and expandable diffs — making it easy to review, share, or archive your Claude Code sessions.
 
 ## Features
 
