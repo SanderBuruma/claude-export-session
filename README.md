@@ -66,6 +66,10 @@ Reports are saved to `~/.claude/custom-reports/{date}-{slug}/`:
 - `session.md` — clean Markdown
 - `session.html` — styled HTML with syntax highlighting
 
+## Security Warning
+
+Exported sessions may contain **credentials, API keys, tokens, passwords, internal URLs, and other sensitive information** from your conversation — including tool results that echo file contents, environment variables, or command output. Always review and redact private information before sharing exported reports with others or uploading them to public repositories.
+
 ## Platform support
 
 Works on Windows, macOS, and Linux. The output directory is auto-resolved from `$USERPROFILE` (Windows) or `$HOME` (macOS/Linux). Override with `CLAUDE_CONFIG_DIR` env var if your `.claude` directory is in a non-standard location.
