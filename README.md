@@ -68,7 +68,9 @@ Reports are saved to `~/.claude/custom-reports/{date}-{slug}/`:
 
 ## Security Warning
 
-Exported sessions may contain **credentials, API keys, tokens, passwords, internal URLs, and other sensitive information** from your conversation — including tool results that echo file contents, environment variables, or command output. Always review and redact private information before sharing exported reports with others or uploading them to public repositories.
+After export, an automated Haiku 4.5 security scan reads the generated Markdown and flags API keys, tokens, credentials, internal IPs, connection strings, and other secrets. Flagged content is auto-redacted in both the `.md` and `.html` outputs before you're offered to open or share them.
+
+Automated scanning may miss context-dependent secrets — always do a manual review before sharing exported reports publicly or uploading them to repositories.
 
 ## Platform support
 

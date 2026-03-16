@@ -13,6 +13,8 @@ import os
 import sys
 import re
 import html as html_mod
+import shutil
+import subprocess
 from pathlib import Path
 from datetime import datetime
 
@@ -526,6 +528,93 @@ def to_html(jsonl_path):
     return HTML_TEMPLATE.format(title=title, meta=meta, body=body)
 
 
+def security_audit(md_path, html_path):
+    """Run Haiku 4.5 security scan via claude CLI. Auto-redacts findings."""
+    if not shutil.which("claude"):
+        print("  Security audit skipped: claude CLI not on PATH")
+        return
+
+    md_content = md_path.read_text(encoding="utf-8")
+
+    prompt = (
+        "You are a security scanner. Scan the session transcript below for sensitive data.\n\n"
+        "FLAG these (actual values only, not variable names):\n"
+        "- API keys/tokens (sk-ant-*, ghp_*, AKIA*, bearer/jwt tokens)\n"
+        "- Passwords/credentials (the actual values)\n"
+        "- Internal IPs (172.*, 192.168.*, 10.*) and internal hostnames (*.local, *.internal)\n"
+        "- Database connection strings with embedded credentials\n"
+        "- Email addresses (except noreply@anthropic.com)\n"
+        "- Private key blocks (RSA, SSH, PGP)\n"
+        "- Environment variable values containing secrets\n\n"
+        "DO NOT FLAG: variable/parameter names without values, public URLs, "
+        "usernames in Windows file paths (C:\\Users\\...), [REDACTED] text, "
+        "code mentioning 'password'/'secret'/'key' as names without actual secret values.\n\n"
+        "OUTPUT FORMAT — one finding per line, no other text:\n"
+        "FINDING|<exact_string_to_redact>|<type_description>\n\n"
+        "If nothing found, output exactly one word: CLEAN\n\n"
+        "--- SESSION START ---\n"
+        + md_content
+        + "\n--- SESSION END ---"
+    )
+
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
+
+    try:
+        result = subprocess.run(
+            ["claude", "--print", "--dangerously-skip-permissions", "--model", "haiku"],
+            input=prompt,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=env,
+            timeout=300,
+        )
+        output = result.stdout.strip()
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f"  Security audit skipped: {e}")
+        return
+
+    if not output or output.strip().upper() == "CLEAN":
+        print("  Security audit: no sensitive content found")
+        return
+
+    # Parse findings
+    secrets = []
+    for line in output.splitlines():
+        line = line.strip()
+        if line.startswith("FINDING|"):
+            parts = line.split("|", 2)
+            if len(parts) >= 2 and parts[1]:
+                secrets.append(parts[1])
+
+    if not secrets:
+        print("  Security audit: no sensitive content found")
+        return
+
+    # Redact in both files
+    md_text = md_path.read_text(encoding="utf-8")
+    html_text = html_path.read_text(encoding="utf-8")
+
+    count = 0
+    for secret in secrets:
+        if secret in md_text:
+            md_text = md_text.replace(secret, "[REDACTED]")
+            count += 1
+        # HTML file: check both raw and HTML-escaped forms
+        if secret in html_text:
+            html_text = html_text.replace(secret, "[REDACTED]")
+        escaped = html_mod.escape(secret)
+        if escaped != secret and escaped in html_text:
+            html_text = html_text.replace(escaped, "[REDACTED]")
+
+    md_path.write_text(md_text, encoding="utf-8")
+    html_path.write_text(html_text, encoding="utf-8")
+
+    print(f"  Security audit: {count} redaction(s) applied")
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -558,6 +647,8 @@ def main():
     print(f"Exported to {out_dir}")
     print(f"  {md_path}")
     print(f"  {html_path}")
+
+    security_audit(md_path, html_path)
 
 
 if __name__ == "__main__":

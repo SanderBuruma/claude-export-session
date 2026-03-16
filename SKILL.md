@@ -52,7 +52,12 @@ Reports are saved to:
 
 After export, offer to open the HTML in the browser (`start` on Windows, `open` on macOS, `xdg-open` on Linux).
 
+## Security Audit
+
+The export script automatically runs a Haiku 4.5 security scan after generating the reports. It invokes `claude --dangerously-skip-permissions --print --model haiku` to scan `session.md` for API keys, tokens, credentials, internal IPs, connection strings, private keys, and email addresses. Flagged content is auto-redacted (replaced with `[REDACTED]`) in both `session.md` and `session.html` (including HTML-escaped variants). The audit is skipped gracefully if the `claude` CLI is not available on PATH.
+
 ## Dependencies
 
 - Python 3.x (stdlib only — no pip install required)
+- Optional: `claude` CLI on PATH — enables the automated Haiku 4.5 security audit
 - Optional: `markdown` library (`pip install markdown`) for better HTML conversion; falls back to built-in regex conversion if unavailable
