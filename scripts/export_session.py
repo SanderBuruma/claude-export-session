@@ -402,35 +402,14 @@ def get_session_date(jsonl_path):
     return "unknown-date"
 
 
-def derive_session_name(jsonl_path):
-    """Derive a readable folder name from the first user message."""
+def derive_session_name(jsonl_path, custom_name=None):
+    """Derive a folder name from session date + ID prefix, or a custom name."""
     session_id = Path(jsonl_path).stem
-    with open(jsonl_path, "r", encoding="utf-8") as f:
-        for line in f:
-            try:
-                entry = json.loads(line.strip())
-            except json.JSONDecodeError:
-                continue
-            if entry.get("type") != "user":
-                continue
-            msg = entry.get("message", {})
-            content = msg.get("content", "")
-            text = ""
-            if isinstance(content, str):
-                text = content
-            elif isinstance(content, list):
-                for block in content:
-                    if isinstance(block, dict) and block.get("type") == "text":
-                        text = block["text"]
-                        break
-            if text and not text.startswith(("[Request interrupted", "The user doesn't want")):
-                # Slugify first ~60 chars
-                slug = text[:60].strip().lower()
-                slug = re.sub(r'[^a-z0-9]+', '-', slug).strip('-')
-                if slug:
-                    date = get_session_date(jsonl_path)
-                    return f"{date}-{slug}"
     date = get_session_date(jsonl_path)
+    if custom_name:
+        slug = custom_name.strip().lower()
+        slug = re.sub(r'[^a-z0-9]+', '-', slug).strip('-')
+        return f"{date}-{slug}" if slug else f"{date}-{session_id[:8]}"
     return f"{date}-{session_id[:8]}"
 
 
@@ -552,12 +531,19 @@ def main():
         print(__doc__)
         sys.exit(1)
 
+    # Parse args: <jsonl_path> [--name <name>]
     jsonl_path = sys.argv[1]
+    custom_name = None
+    if "--name" in sys.argv:
+        idx = sys.argv.index("--name")
+        if idx + 1 < len(sys.argv):
+            custom_name = sys.argv[idx + 1]
+
     if not Path(jsonl_path).exists():
         print(f"Error: {jsonl_path} not found", file=sys.stderr)
         sys.exit(1)
 
-    session_name = derive_session_name(jsonl_path)
+    session_name = derive_session_name(jsonl_path, custom_name)
     out_dir = REPORTS_DIR / session_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
